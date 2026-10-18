@@ -1,0 +1,35 @@
+# Builds stock SimulationCraft at the commit pinned in worker/setup.sh into the Actions cache every sims run restores.
+# Runs on main, so jobs/* branches can read the cache. The schedule keeps it from expiring (7 days unused).
+name: build-simc
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['worker/setup.sh']
+  schedule:
+    - cron: '23 4 */3 * *'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+      - id: cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/simc-bin/simc
+          key: simc-${{ hashFiles('worker/setup.sh') }}
+      - name: Build simc
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          sudo env NO_IDLE=1 bash worker/setup.sh
+          mkdir -p ~/simc-bin
+          cp /opt/simc/build/simc ~/simc-bin/simc
+      - run: ~/simc-bin/simc display_build=1 | tail -n 1
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/simc-bin/simc
+          key: simc-${{ hashFiles('worker/setup.sh') }}

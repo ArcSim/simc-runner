@@ -1,0 +1,32 @@
+# One sim batch. The PC pushes branch jobs/<id> = main + batch.enc (encrypted), 20 jobs each run their share of the
+# chunks and upload encrypted answers, the PC downloads them and deletes the branch.
+name: sims
+on:
+  push:
+    branches: ['jobs/**']
+permissions:
+  contents: read
+jobs:
+  shard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/cache/restore@v6
+        with:
+          path: ~/simc-bin/simc
+          key: simc-${{ hashFiles('worker/setup.sh') }}
+          fail-on-cache-miss: true
+      - name: Run shard
+        env:
+          SIM_KEY: ${{ secrets.SIM_KEY }}
+        run: python3 worker/shard.py batch.enc ${{ matrix.shard }} ${{ strategy.job-total }} out-${{ matrix.shard }}.enc
+      - uses: actions/upload-artifact@v7
+        with:
+          name: out-${{ matrix.shard }}
+          path: out-${{ matrix.shard }}.enc
+          retention-days: 1
