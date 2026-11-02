@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# simc worker on Ubuntu 22.04/24.04 x86-64: stock simc at the Raidbots commit + worker.py + idle power-off.
+# simc worker on Ubuntu 22.04/24.04 x86-64: stock simc at the pinned commit + worker.py + idle power-off.
 # Run as root from the folder holding worker.py (cloud-init does this). About 10 min on 64 cores, mostly compiling.
-# env: SIMC_COMMIT (Raidbots' build), IDLE_MIN (power off after this many idle minutes; 0 = never), NO_IDLE=1 (Docker)
+# env: SIMC_COMMIT (simc midnight build), IDLE_MIN (power off after this many idle minutes; 0 = never), NO_IDLE=1 (Docker)
 set -euo pipefail
-SIMC_COMMIT=${SIMC_COMMIT:-5537d8813dfc59707927722b1e23ffa6fd67ee59}
+SIMC_COMMIT=${SIMC_COMMIT:-b522cded8c26b97dac03fdf56e57a03ec7e8faa6}
 IDLE_MIN=${IDLE_MIN:-30}
 HERE=$(cd "$(dirname "$0")" && pwd)
 
